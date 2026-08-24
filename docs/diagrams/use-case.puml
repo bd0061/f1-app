@@ -1,0 +1,59 @@
+@startuml
+left to right direction
+skinparam packageStyle rectangle
+skinparam shadowing false
+
+actor Visitor
+actor Customer
+actor Administrator
+actor Organizer
+actor "Frankfurter Exchange Rate API" as Frankfurter
+actor RabbitMQ
+
+rectangle "A.1 Ticketing SPA" as A1 {
+  usecase "View race\ninformation" as UCView
+  usecase "Purchase ticket" as UCPurchase
+  usecase "Use promo code" as UCPromo
+  usecase "Modify ticket" as UCModify
+  usecase "Cancel ticket" as UCCancel
+  usecase "Purchase paddock\npass" as UCPaddock
+  usecase "Edit race\nconfiguration" as UCAdmin
+  usecase "Calculate final\nprice" as UCPrice
+  usecase "Publish committed\nreporting event" as UCPublish
+}
+
+rectangle "A.2 Organizer Reporting Portal" as A2 {
+  usecase "View tickets by\ncompetition day" as UCDayReport
+  usecase "View purchases\nby date" as UCPurchaseReport
+  usecase "Filter purchases\nby start date" as UCFilter
+  usecase "View paddock\noption totals" as UCPaddockReport
+  usecase "Refresh reports" as UCRefresh
+}
+
+Visitor --> UCView
+Customer --> UCView
+Customer --> UCPurchase
+Customer --> UCPromo
+Customer --> UCModify
+Customer --> UCCancel
+Customer --> UCPaddock
+Administrator --> UCAdmin
+Organizer --> UCDayReport
+Organizer --> UCPurchaseReport
+Organizer --> UCFilter
+Organizer --> UCPaddockReport
+Organizer --> UCRefresh
+
+UCPromo .> UCPurchase : <<extend>>
+UCPurchase .> UCPrice : <<include>>
+UCModify .> UCPrice : <<include>>
+UCPaddock .> UCPrice : <<include>>
+UCPurchase .> UCPublish : <<include>>
+UCModify .> UCPublish : <<include>>
+UCCancel .> UCPublish : <<include>>
+UCPaddock .> UCPublish : <<include>>
+UCFilter .> UCPurchaseReport : <<include>>
+
+Frankfurter --> UCPrice
+RabbitMQ --> UCPublish
+@enduml

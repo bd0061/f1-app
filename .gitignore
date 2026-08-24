@@ -1,0 +1,46 @@
+# Node.js and Vite
+**/node_modules/
+**/dist/
+**/.vite/
+**/.cache/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# .NET build and test output
+**/[Bb]in/
+**/[Oo]bj/
+**/[Aa]rtifacts/
+**/[Tt]est[Rr]esults/
+*.coverage
+*.coveragexml
+*.trx
+
+# Visual Studio and VS Code local state
+.vs/
+.vscode/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Local environment files and secrets
+.env
+.env.*
+!.env.example
+**/appsettings.Local.json
+**/appsettings.*.Local.json
+secrets.json
+
+# Logs and operating-system files
+*.log
+logs/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Local databases and cache files
+*.db
+*.db-shm
+*.db-wal

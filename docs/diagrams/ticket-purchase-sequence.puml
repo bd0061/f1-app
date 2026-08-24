@@ -1,0 +1,47 @@
+@startuml
+autonumber
+skinparam shadowing false
+
+actor Customer
+participant "A.1 React\nBuyTicket" as React
+participant "Ticketing API" as Api
+participant "TicketService" as Service
+participant "Frankfurter API" as Frankfurter
+database "Ticketing PostgreSQL" as TicketDb
+participant "Outbox Publisher\nWorker" as OutboxWorker
+queue "RabbitMQ\nf1.ticket-events" as Rabbit
+participant "ReportingConsumer" as Consumer
+database "Reporting PostgreSQL" as ReportDb
+
+Customer -> React : Complete customer, days, zones, currency
+React -> Api : POST /api/tickets
+Api -> Service : PurchaseAsync(request)
+Service -> TicketDb : Read race, zones, currencies, promo/ticket state
+
+opt Selected currency is not EUR
+  Service -> Frankfurter : GET latest rate EUR -> currency
+  Frankfurter --> Service : Conversion rate
+end
+
+Service -> Service : Validate and calculate final amount
+Service -> TicketDb : BEGIN transaction
+Service -> TicketDb : Insert Ticket and TicketDay rows
+Service -> TicketDb : Insert OutboxMessage(TicketCreated)
+Service -> TicketDb : COMMIT
+Service --> Api : Ticket response
+Api --> React : 200 registration code, promo code, total
+React --> Customer : Display confirmation and copy controls
+
+loop Pending outbox messages
+  OutboxWorker -> TicketDb : Read committed unpublished message
+  OutboxWorker -> Rabbit : Publish TicketCreated
+  Rabbit -> Consumer : Deliver TicketCreated
+  Consumer -> ReportDb : Insert ReportedTicket and ReportedTicketDay
+  OutboxWorker -> TicketDb : Mark outbox message published
+end
+
+note right of TicketDb
+  Persistence is committed before RabbitMQ publication.
+  A failed publish leaves the outbox record available for retry.
+end note
+@enduml

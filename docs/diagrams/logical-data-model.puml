@@ -1,0 +1,127 @@
+@startuml
+hide methods
+skinparam shadowing false
+skinparam linetype ortho
+
+package "Ticketing PostgreSQL" <<Database>> {
+  entity "Race" as Race {
+    * Id : int
+    --
+    Name : text
+    Location : text
+    StartDate : date
+    EndDate : date
+    DiscountUntil : date
+  }
+
+  entity "RaceDay" as RaceDay {
+    * Id : int
+    --
+    RaceId : int <<FK>>
+    Date : date
+    BasePrice : decimal
+    Capacity : int
+  }
+
+  entity "SeatingZone" as SeatingZone {
+    * Id : int
+    --
+    RaceId : int <<FK>>
+    Name : text
+    Characteristics : text
+    Capacity : int
+    Surcharge : decimal
+  }
+
+  entity "Currency" as Currency {
+    * Id : int
+    --
+    Code : char(3)
+    IsAllowed : bool
+  }
+
+  entity "Ticket" as Ticket {
+    * Id : guid
+    --
+    CurrencyId : int <<FK>>
+    RegistrationCode : text
+    PromoCode : text
+    PromoCodeUsed : bool
+    Customer fields : text
+    TotalPrice : decimal
+    Status : enum
+    PurchasedAt : timestamptz
+  }
+
+  entity "TicketDay" as TicketDay {
+    * Id : int
+    --
+    TicketId : guid <<FK>>
+    RaceDayId : int <<FK>>
+    SeatingZoneId : int <<FK>>
+    Price : decimal
+  }
+
+  entity "PaddockPass" as PaddockPass {
+    * Id : guid
+    --
+    TicketId : guid <<FK, unique>>
+    PitLane : bool
+    Food : bool
+    Drinks : bool
+    TotalPrice : decimal
+  }
+
+  entity "OutboxMessage" as Outbox {
+    * Id : guid
+    --
+    EventName : text
+    Payload : json
+    OccurredAt : timestamptz
+    PublishedAt : timestamptz?
+  }
+}
+
+package "Reporting PostgreSQL" <<Database>> {
+  entity "ReportedTicket" as ReportedTicket {
+    * Id : guid
+    --
+    PurchasedAt : timestamptz
+  }
+
+  entity "ReportedTicketDay" as ReportedTicketDay {
+    * Id : int
+    --
+    TicketId : guid <<FK>>
+    RaceDayDate : date
+    --
+    unique(TicketId, RaceDayDate)
+  }
+
+  entity "ReportedPaddockPass" as ReportedPaddockPass {
+    * Id : guid
+    --
+    TicketId : guid
+    PitLane : bool
+    Food : bool
+    Drinks : bool
+  }
+}
+
+database "Redis\nrace-information cache" as Redis
+queue "RabbitMQ\nf1.ticket-events" as Rabbit
+
+Race ||--o{ RaceDay
+Race ||--o{ SeatingZone
+Currency ||--o{ Ticket
+Ticket ||--o{ TicketDay
+RaceDay ||--o{ TicketDay
+SeatingZone ||--o{ TicketDay
+Ticket ||--o| PaddockPass
+ReportedTicket ||--o{ ReportedTicketDay
+
+Race .. Redis : serialized public race
+Outbox .. Rabbit : outbox worker publishes
+Rabbit .. ReportedTicket : reporting consumer projects
+Rabbit .. ReportedPaddockPass : reporting consumer projects
+@enduml
