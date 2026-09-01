@@ -1,6 +1,6 @@
 # F1 Prodaja tiketa
 
-Ovaj repozitorijum sadrži backend za dve odvojene aplikacije:
+Ovaj repozitorijum sadrži frontend i backend za dve odvojene aplikacije:
 
 - **A.1 F1 Ticketing API**: kupovina i izmena karata i paddock pass-ova.
 - **A.2 Reporting API**: prikupljanje događaja iz RabbitMQ-a i statistika za organizatore.
@@ -16,7 +16,7 @@ Potrebno instalirati:
 
 
 
-### Pokretanje 
+### Pokretanje Docker kontejnera (docker compose)
 
 Iz root direktorijuma projekta pokrenuti:
 
@@ -37,7 +37,9 @@ Compose pokreće:
 
 ### Pokretanje A.1
 
-U prvom terminalu:
+Backend:
+
+Iz `.\backend\F1Ticketing.Api`
 
 ```powershell
 dotnet run --project F1Ticketing.Api
@@ -56,9 +58,23 @@ Pri pokretanju A.1:
 3. Ako je baza prazna, dodaju se početna trka i valuta EUR.
 4. API počinje da prima zahteve.
 
+Frontend:
+
+Iz `.\frontend\testing`
+
+```powershell
+npm install
+npm run dev
+```
+
+Dev server na `http://localhost:5173`. Vite dev proxy salje `/api/*` to `http://localhost:5284`(izbegavanje CORS pravila za laksi development)
+
+
 ### Pokretanje A.2
 
-U drugom terminalu:
+Backend:
+
+Iz `.\backend\F1Reporting.Api`
 
 ```powershell
 dotnet run --project F1Reporting.Api
@@ -77,9 +93,22 @@ Pri pokretanju A.2:
 3. Consumer se vezuje za `f1.ticket-events`.
 4. A.2 čeka nove događaje i upisuje reporting podatke.
 
+Frontend:
+
+Frontend:
+
+Iz `.\frontend\reporting`
+
+```powershell
+npm install
+npm run dev
+```
+
+Dev server na `http://localhost:5174`. Vite dev proxy salje `/api/*` do `http://localhost:5167`(izbegavanje CORS pravila za laksi development)
+
 ### RabbitMQ Management
 
-Otvoriti:
+Web Interface:
 
 ```text
 http://localhost:15672
@@ -297,3 +326,8 @@ dotnet test
 ```
 
 Jedinični testovi koriste EF Core in memory provider radi brzine. E2E testovi u `InfrastructureE2ETests.cs` koriste Testcontainers i stvarne Docker kontejnere za PostgreSQL, RabbitMQ i Redis. Oni proveravaju stvarni A.1 outbox upis, dispatcher, RabbitMQ publish, PostgreSQL reporting upis, Redis TTL i invalidaciju. Puni A.2 `BackgroundService` lifecycle još nije pokrenut kao host u testu, poruka se nakon stvarnog publisha predaje processoru direktno.
+
+### Specifikacija
+
+Relevantni dijagrami i plantuml kod iz kojih su generisani nalaze se u `.\docs\` direktorijumu. Detaljnija dokumentacija o samom projektu se takođe može tu naći.
+

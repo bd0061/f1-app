@@ -13,35 +13,35 @@ queue "RabbitMQ\nf1.ticket-events" as Rabbit
 participant "ReportingConsumer" as Consumer
 database "Reporting PostgreSQL" as ReportDb
 
-Customer -> React : Complete customer, days, zones, currency
+Customer -> React : Unos podataka kupca, dana, zona i valute
 React -> Api : POST /api/tickets
 Api -> Service : PurchaseAsync(request)
-Service -> TicketDb : Read race, zones, currencies, promo/ticket state
+Service -> TicketDb : Čitanje trke, zona, valuta i stanja promo koda/karte
 
-opt Selected currency is not EUR
-  Service -> Frankfurter : GET latest rate EUR -> currency
-  Frankfurter --> Service : Conversion rate
+opt Izabrana valuta nije EUR
+Service -> Frankfurter : GET latest rate EUR -> valuta
+Frankfurter --> Service : Kurs konverzije
 end
 
-Service -> Service : Validate and calculate final amount
+Service -> Service : Validacija i izračunavanje konačnog iznosa
 Service -> TicketDb : BEGIN transaction
-Service -> TicketDb : Insert Ticket and TicketDay rows
-Service -> TicketDb : Insert OutboxMessage(TicketCreated)
+Service -> TicketDb : Unos Ticket i TicketDay redova
+Service -> TicketDb : Unos OutboxMessage(TicketCreated)
 Service -> TicketDb : COMMIT
-Service --> Api : Ticket response
-Api --> React : 200 registration code, promo code, total
-React --> Customer : Display confirmation and copy controls
+Service --> Api : Odgovor sa kartom
+Api --> React : 200 registracioni kod, promo kod, ukupno
+React --> Customer : Prikaz potvrde i kontrole za kopiranje
 
-loop Pending outbox messages
-  OutboxWorker -> TicketDb : Read committed unpublished message
-  OutboxWorker -> Rabbit : Publish TicketCreated
-  Rabbit -> Consumer : Deliver TicketCreated
-  Consumer -> ReportDb : Insert ReportedTicket and ReportedTicketDay
-  OutboxWorker -> TicketDb : Mark outbox message published
+loop Outbox poruke na čekanju
+OutboxWorker -> TicketDb : Čitanje potvrđene neobjavljene poruke
+OutboxWorker -> Rabbit : Objavljivanje TicketCreated događaja
+Rabbit -> Consumer : Dostavljanje TicketCreated događaja
+Consumer -> ReportDb : Unos ReportedTicket i ReportedTicketDay
+OutboxWorker -> TicketDb : Označavanje outbox poruke kao objavljene
 end
 
 note right of TicketDb
-  Persistence is committed before RabbitMQ publication.
-  A failed publish leaves the outbox record available for retry.
+Perzistencija je potvrđena pre objavljivanja na RabbitMQ.
+Neuspešno objavljivanje ostavlja outbox zapis dostupan za ponovni pokušaj.
 end note
 @enduml

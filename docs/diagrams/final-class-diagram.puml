@@ -4,93 +4,93 @@ skinparam classAttributeIconSize 0
 skinparam shadowing false
 
 package "A.1 React Ticketing" {
-  class App <<component>>
-  class Layout <<component>>
-  class LandingPageMain <<component>>
-  class RaceInfoSection <<component>>
-  class BuyTicket <<component>>
-  class ManageTicket <<component>>
-  class PaddockPass <<component>>
-  class Admin <<component>>
-  class apiRequest <<function>>
+class App <<component>>
+class Layout <<component>>
+class LandingPageMain <<component>>
+class RaceInfoSection <<component>>
+class BuyTicket <<component>>
+class ManageTicket <<component>>
+class PaddockPass <<component>>
+class Admin <<component>>
+class apiRequest <<function>>
 
-  App --> Layout
-  App --> LandingPageMain
-  App --> RaceInfoSection
-  App --> BuyTicket
-  App --> ManageTicket
-  App --> PaddockPass
-  App --> Admin
-  RaceInfoSection --> apiRequest
-  BuyTicket --> apiRequest
-  ManageTicket --> apiRequest
-  PaddockPass --> apiRequest
-  Admin --> apiRequest
+App --> Layout
+App --> LandingPageMain
+App --> RaceInfoSection
+App --> BuyTicket
+App --> ManageTicket
+App --> PaddockPass
+App --> Admin
+RaceInfoSection --> apiRequest
+BuyTicket --> apiRequest
+ManageTicket --> apiRequest
+PaddockPass --> apiRequest
+Admin --> apiRequest
 }
 
 package "Ticketing API" {
-  class TicketService {
-    +PurchaseAsync()
-    +ModifyAsync()
-    +CancelAsync()
-    +PurchasePaddockAsync()
-  }
-  class ExchangeRateService {
-    +GetRateAsync()
-  }
-  class RedisRaceCache {
-    +GetAsync()
-    +SetAsync()
-    +InvalidateAsync()
-  }
-  class OutboxWriter {
-    +Add()
-  }
-  class OutboxPublisherWorker
-  class RabbitEventPublisher {
-    +PublishAsync()
-  }
-  class TicketDbContext
+class TicketService {
++PurchaseAsync()
++ModifyAsync()
++CancelAsync()
++PurchasePaddockAsync()
+}
+class ExchangeRateService {
++GetRateAsync()
+}
+class RedisRaceCache {
++GetAsync()
++SetAsync()
++InvalidateAsync()
+}
+class OutboxWriter {
++Add()
+}
+class OutboxPublisherWorker
+class RabbitEventPublisher {
++PublishAsync()
+}
+class TicketDbContext
 }
 
 package "Ticketing Entities" {
-  class Race
-  class RaceDay
-  class SeatingZone
-  class Currency
-  class Ticket
-  class TicketDay
-  class PaddockPass
-  class OutboxMessage
+class Race
+class RaceDay
+class SeatingZone
+class Currency
+class Ticket
+class TicketDay
+class PaddockPass
+class OutboxMessage
 
-  Race "1" *-- "many" RaceDay
-  Race "1" *-- "many" SeatingZone
-  Currency "1" <-- "many" Ticket
-  Ticket "1" *-- "many" TicketDay
-  Ticket "1" *-- "0..1" PaddockPass
-  RaceDay "1" <-- "many" TicketDay
-  SeatingZone "1" <-- "many" TicketDay
+Race "1" *-- "many" RaceDay
+Race "1" *-- "many" SeatingZone
+Currency "1" <-- "many" Ticket
+Ticket "1" *-- "many" TicketDay
+Ticket "1" *-- "0..1" PaddockPass
+RaceDay "1" <-- "many" TicketDay
+SeatingZone "1" <-- "many" TicketDay
 }
 
 package "A.2 React Reporting" {
-  class ReportingDashboard <<component>>
-  class CountBar <<component>>
-  ReportingDashboard --> CountBar
+class ReportingDashboard <<component>>
+class CountBar <<component>>
+ReportingDashboard --> CountBar
 }
 
 package "Reporting API" {
-  class ReportingQueries {
-    +TicketsByRaceDayAsync()
-    +PurchasesByDateAsync()
-    +PaddockOptionsAsync()
-  }
-  class ReportingConsumer
-  class ReportingDbContext
-  class ReportedTicket
-  class ReportedTicketDay
-  class ReportedPaddockPass
+class ReportingQueries {
++TicketsByRaceDayAsync()
++PurchasesByDateAsync()
++PaddockOptionsAsync()
+}
+class ReportingConsumer
+class ReportingDbContext
+class ReportedTicket
+class ReportedTicketDay
+class ReportedPaddockPass
 
-  ReportedTicket "1" *-- "many" ReportedTicketDay
+ReportedTicket "1" *-- "many" ReportedTicketDay
 }
 
 TicketService --> TicketDbContext
@@ -103,5 +103,5 @@ ReportingConsumer --> ReportingDbContext
 
 apiRequest ..> TicketService : HTTP /api
 ReportingDashboard ..> ReportingQueries : HTTP /api/reports
-OutboxPublisherWorker ..> ReportingConsumer : RabbitMQ events
+OutboxPublisherWorker ..> ReportingConsumer : RabbitMQ događaji
 @enduml

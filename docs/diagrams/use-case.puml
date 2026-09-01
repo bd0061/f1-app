@@ -11,23 +11,23 @@ actor "Frankfurter Exchange Rate API" as Frankfurter
 actor RabbitMQ
 
 rectangle "A.1 Ticketing SPA" as A1 {
-  usecase "View race\ninformation" as UCView
-  usecase "Purchase ticket" as UCPurchase
-  usecase "Use promo code" as UCPromo
-  usecase "Modify ticket" as UCModify
-  usecase "Cancel ticket" as UCCancel
-  usecase "Purchase paddock\npass" as UCPaddock
-  usecase "Edit race\nconfiguration" as UCAdmin
-  usecase "Calculate final\nprice" as UCPrice
-  usecase "Publish committed\nreporting event" as UCPublish
+usecase "Pregled informacija\no trci" as UCView
+usecase "Kupovina karte" as UCPurchase
+usecase "Korišćenje promo koda" as UCPromo
+usecase "Izmena karte" as UCModify
+usecase "Otkazivanje karte" as UCCancel
+usecase "Kupovina paddock\npropusnice" as UCPaddock
+usecase "Izmena konfiguracije\ntrke" as UCAdmin
+usecase "Izračunavanje konačne\ncene" as UCPrice
+usecase "Objavljivanje potvrđenog\ndogađaja za izveštavanje" as UCPublish
 }
 
 rectangle "A.2 Organizer Reporting Portal" as A2 {
-  usecase "View tickets by\ncompetition day" as UCDayReport
-  usecase "View purchases\nby date" as UCPurchaseReport
-  usecase "Filter purchases\nby start date" as UCFilter
-  usecase "View paddock\noption totals" as UCPaddockReport
-  usecase "Refresh reports" as UCRefresh
+usecase "Pregled karata po\ndanu takmičenja" as UCDayReport
+usecase "Pregled kupovina\npo datumu" as UCPurchaseReport
+usecase "Filtriranje kupovina\npo početnom datumu" as UCFilter
+usecase "Pregled ukupnog broja\npaddock opcija" as UCPaddockReport
+usecase "Osvežavanje izveštaja" as UCRefresh
 }
 
 Visitor --> UCView
