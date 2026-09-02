@@ -1,151 +1,6 @@
-using System.Net.Http.Json;
-using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
-using RabbitMQ.Client;
-using StackExchange.Redis;
-
-namespace F1Ticketing.Api;
-
-public interface IExchangeRateService
-{
-    Task<decimal> GetRateAsync(string from, string to, CancellationToken cancellationToken);
-}
-
-public sealed class ExchangeRateService(HttpClient httpClient) : IExchangeRateService
-{
-    // Osnovne cene su u EUR. Za drugu valutu pozivamo javni Frankfurter API
-    // i dobijeni kurs koristimo za konačan obračun.
-    public async Task<decimal> GetRateAsync(
-        string from,
-        string to,
-        CancellationToken cancellationToken
-    )
-    {
-        if (from.Equals(to, StringComparison.OrdinalIgnoreCase))
-            return 1m;
-        var result = await httpClient.GetFromJsonAsync<FrankfurterResponse>(
-            $"https://api.frankfurter.app/latest?from={from}&to={to}",
-            cancellationToken
-        );
-        return result?.Rates?.GetValueOrDefault(to)
-            ?? throw new InvalidOperationException("Currency exchange rate unavailable.");
-    }
-
-    private sealed record FrankfurterResponse(Dictionary<string, decimal>? Rates);
-}
-
-public interface IEventPublisher
-{
-    Task PublishAsync(
-        string eventName,
-        object payload,
-        CancellationToken cancellationToken = default
-    );
-}
-
-public sealed class RabbitEventPublisher(
-    IConfiguration configuration,
-    ILogger<RabbitEventPublisher> logger
-) : IEventPublisher
-{
-    public Task PublishAsync(
-        string eventName,
-        object payload,
-        CancellationToken cancellationToken = default
-    )
-    {
-        var connectionString = configuration["RabbitMq:ConnectionString"];
-        // Lokalno se može raditi i bez RabbitMQ-a. U normalnom radu konekcija
-        // dolazi iz konfiguracije.
-        if (string.IsNullOrWhiteSpace(connectionString))
-        {
-            logger.LogWarning("RabbitMQ is not configured; skipping {EventName} event", eventName);
-            return Task.CompletedTask;
-        }
-        try
-        {
-            logger.LogDebug("Povezivanje sa RabbitMQ radi objave događaja {EventName}", eventName);
-            var factory = new ConnectionFactory { Uri = new Uri(connectionString) };
-            using var connection = factory.CreateConnection();
-            using var channel = connection.CreateModel();
-            channel.ExchangeDeclare("f1.ticket-events", ExchangeType.Fanout, durable: true);
-            var body = JsonSerializer.SerializeToUtf8Bytes(
-                new
-                {
-                    EventName = eventName,
-                    Payload = payload,
-                    OccurredAt = DateTimeOffset.UtcNow,
-                }
-            );
-            channel.BasicPublish("f1.ticket-events", "", null, body);
-            logger.LogInformation(
-                "Objavljen je događaj {EventName} na RabbitMQ exchange-u {Exchange}",
-                eventName,
-                "f1.ticket-events"
-            );
-        }
-        catch (Exception exception)
-        {
-            logger.LogWarning(
-                exception,
-                "Događaj {EventName} nije mogao biti objavljen",
-                eventName
-            );
-            // Dispatcher mora videti grešku da bi outbox zapis ostao pending
-            // i mogao biti ponovo pokušan pri sledećem prolazu.
-            throw;
-        }
-        return Task.CompletedTask;
-    }
-}
-
-public interface IRaceCache
-{
-    Task<string?> GetAsync();
-    Task SetAsync(string value);
-    Task InvalidateAsync();
-}
-
-public sealed class RedisRaceCache(IConfiguration configuration, ILogger<RedisRaceCache> logger)
-    : IRaceCache
-{
-    private readonly Lazy<ConnectionMultiplexer?> connection = new(() =>
-    {
-        var value = configuration.GetConnectionString("Redis");
-        return string.IsNullOrWhiteSpace(value) ? null : ConnectionMultiplexer.Connect(value);
-    });
-
-    // Podaci trke se često čitaju, zato serijalizovani odgovor držimo u
-    // Redis-u deset minuta.
-    public async Task<string?> GetAsync()
-    {
-        if (connection.Value is null)
-            return null;
-        var value = await connection.Value.GetDatabase().StringGetAsync("f1:race");
-        logger.LogDebug("Redis keš trke: {CacheStatus}", value.HasValue ? "pogodak" : "promašaj");
-        return value.HasValue ? value.ToString() : null;
-    }
-
-    //10min ttl
-    public async Task SetAsync(string value)
-    {
-        if (connection.Value is null)
-            return;
-        await connection
-            .Value.GetDatabase()
-            .StringSetAsync("f1:race", value, TimeSpan.FromMinutes(10));
-        logger.LogDebug("Podaci trke su upisani u Redis na deset minuta");
-    }
-
-    public async Task InvalidateAsync()
-    {
-        if (connection.Value is null)
-            return;
-
-        await connection.Value.GetDatabase().KeyDeleteAsync("f1:race");
-        logger.LogDebug("Redis keš trke je invalidiran");
-    }
-}
+using F1Ticketing.Api.Exceptions;
+namespace F1Ticketing.Api.Services;
 
 public sealed class TicketService(
     TicketDbContext db,
@@ -259,7 +114,7 @@ public sealed class TicketService(
                 ticket.PurchasedAt,
                 RaceDays = ticket.Days.Select(day => new
                 {
-                    Date = selected.Single(x => x.day.Id == day.RaceDayId).day.Date,
+                    selected.Single(x => x.day.Id == day.RaceDayId).day.Date,
                 }),
                 ticket.Days.Count,
             }
@@ -529,6 +384,3 @@ public sealed class TicketService(
 
     private static string CreateCode() => Convert.ToHexString(Guid.NewGuid().ToByteArray());
 }
-
-// Očekivana poslovna greška se na HTTP nivou pretvara u 400 Bad Request.
-public sealed class RuleException(string message) : Exception(message);

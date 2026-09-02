@@ -1,5 +1,6 @@
 using F1Reporting.Api;
 using F1Ticketing.Api;
+using F1Ticketing.Api.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging.Abstractions;
