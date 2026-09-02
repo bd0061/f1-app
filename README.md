@@ -60,7 +60,7 @@ Pri pokretanju A.1:
 
 Frontend:
 
-Iz `.\frontend\testing`
+Iz `.\frontend\ticketing`
 
 ```powershell
 npm install

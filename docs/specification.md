@@ -2,7 +2,7 @@
 
 ## Opseg
 
-Projekat sadrži dve nezavisne React/Vite jednostranične aplikacije. A.1 je javna aplikacija za prodaju karata na `frontend/testing`; A.2 je portal za izveštavanje organizatora na `frontend/reporting`. Obe aplikacije koriste Vite razvojni proxy i održavaju zahteve iz browsera na `/api`. Backend za prodaju karata upravlja cenama, konverzijom valuta, Redis keširanjem, PostgreSQL perzistencijom, outbox-om i objavljivanjem na RabbitMQ. Backend za izveštavanje poseduje svoju zasebnu bazu podataka za izveštavanje i konzumira RabbitMQ događaje.
+Projekat sadrži dve nezavisne React/Vite jednostranične aplikacije. A.1 je javna aplikacija za prodaju karata na `frontend/ticketing`; A.2 je portal za izveštavanje organizatora na `frontend/reporting`. Obe aplikacije koriste Vite razvojni proxy i održavaju zahteve iz browsera na `/api`. Backend za prodaju karata upravlja cenama, konverzijom valuta, Redis keširanjem, PostgreSQL perzistencijom, outbox-om i objavljivanjem na RabbitMQ. Backend za izveštavanje poseduje svoju zasebnu bazu podataka za izveštavanje i konzumira RabbitMQ događaje.
 
 Frontend aplikacije namerno koriste lokalno React stanje stranice, `useEffect`, direktan `fetch` i običan CSS. Ne koriste sistem naloga, klijentsku integraciju kursa valuta, zajednički frontend paket, biblioteku za grafikone, Redux niti biblioteku za forme.
 

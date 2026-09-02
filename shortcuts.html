@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="sr">
+<head>
+<meta charset="UTF-8">
+<title>Shortcuts</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 900px; margin: 2rem auto; padding: 0 1rem; line-height: 1.5; }
+  h1 { font-size: 1.4rem; }
+  h2 { font-size: 1.1rem; margin-top: 2rem; border-bottom: 1px solid #ccc; padding-bottom: .25rem; }
+  table { border-collapse: collapse; width: 100%; margin: .5rem 0 1rem; }
+  th, td { border: 1px solid #ccc; padding: .4rem .6rem; text-align: left; }
+  th { background: #f0f0f0; }
+  code { background: #f0f0f0; padding: .1rem .3rem; border-radius: 3px; }
+  pre { background: #f5f5f5; padding: .75rem 1rem; border-radius: 4px; overflow-x: auto; }
+  a { color: #0645ad; }
+</style>
+</head>
+<body>
+
+<h1>Shortcuts</h1>
+
+<h2>Servisi i URL-ovi</h2>
+<table>
+  <tr><th>Servis</th><th>URL</th><th>Beleška</th></tr>
+  <tr><td>A.1 Ticketing Frontend</td><td><a href="http://localhost:5173">http://localhost:5173</a></td><td></td></tr>
+  <tr><td>A.1 Ticketing API / Swagger</td><td><a href="http://localhost:5284/swagger">http://localhost:5284/swagger</a></td><td></td></tr>
+  <tr><td>A.2 Reporting Frontend</td><td><a href="http://localhost:5174">http://localhost:5174</a></td><td></td></tr>
+  <tr><td>A.2 Reporting API / Swagger</td><td><a href="http://localhost:5167/swagger">http://localhost:5167/swagger</a></td><td></td></tr>
+  <tr><td>RabbitMQ Management</td><td><a href="http://localhost:15672">http://localhost:15672</a></td><td>login: <code>f1</code> / <code>f1</code></td></tr>
+  <tr><td>PostgreSQL (A.1)</td><td><code>localhost:55432</code></td><td>db <code>f1</code>, user <code>f1</code> / <code>f1</code></td></tr>
+  <tr><td>PostgreSQL (A.2 reporting)</td><td><code>localhost:5433</code></td><td>db <code>f1_reporting</code>, user <code>f1</code> / <code>f1</code></td></tr>
+  <tr><td>Redis</td><td><code>localhost:6379</code></td><td></td></tr>
+  <tr><td>pgAdmin</td><td><a href="http://localhost:5050">http://localhost:5050</a></td><td>login: <code>admin@admin.com</code> / <code>admin</code></td></tr>
+</table>
+
+<h2>pgAdmin — konekcija na PostgreSQL baze</h2>
+<p>pgAdmin je u istoj Docker mreži kao baze, pa se koriste interni nazivi servisa i port <code>5432</code> (ne host-mapirani portovi 55432/5433).</p>
+<table>
+  <tr><th>Baza</th><th>Host</th><th>Port</th><th>Maintenance DB</th><th>Username</th><th>Password</th></tr>
+  <tr><td>A.1 (ticketing)</td><td><code>postgres</code></td><td><code>5432</code></td><td><code>f1</code></td><td><code>f1</code></td><td><code>f1</code></td></tr>
+  <tr><td>A.2 (reporting)</td><td><code>reporting-postgres</code></td><td><code>5432</code></td><td><code>f1_reporting</code></td><td><code>f1</code></td><td><code>f1</code></td></tr>
+</table>
+
+<h2>Nazivi servisa (docker-compose.yml)</h2>
+<pre>postgres
+reporting-postgres
+redis
+rabbitmq
+ticketing-api
+reporting-api
+ticketing-frontend
+reporting-frontend
+pgadmin</pre>
+
+<h2>Docker compose shortcuts</h2>
+
+<h3>Podizanje</h3>
+<pre>docker compose up -d --build              # svi servisi
+docker compose up -d --build &lt;naziv&gt;      # pojedinačni servis</pre>
+
+<h3>Gašenje</h3>
+<pre>docker compose down                       # svi servisi
+docker compose down &lt;naziv&gt;               # pojedinačni servis</pre>
+
+<h3>Stop / start direktno preko naziva kontejnera</h3>
+<pre>sudo docker stop &lt;naziv-servisa&gt;
+sudo docker start &lt;naziv-servisa&gt;</pre>
+
+<h3>Logovi</h3>
+<pre>docker compose logs -f &lt;naziv&gt;</pre>
+
+</body>
+</html>

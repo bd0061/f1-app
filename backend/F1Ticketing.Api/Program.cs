@@ -264,7 +264,7 @@ app.MapPost(
     {
         try
         {
-            return Results.Ok(await service.PurchasePaddockAsync(request, ct));
+            return Results.Ok(ToPaddockResponse(await service.PurchasePaddockAsync(request, ct)));
         }
         catch (RuleException e)
         {
@@ -297,6 +297,16 @@ static TicketResponse ToResponse(Ticket ticket) =>
             x.SeatingZoneId,
             x.Price,
         })
+    );
+
+static PaddockResponse ToPaddockResponse(PaddockPass pass) =>
+    new(
+        pass.Id,
+        pass.TotalPrice,
+        pass.Ticket.Currency.Code,
+        pass.PitLane,
+        pass.Food,
+        pass.Drinks
     );
 
 static object ToRaceResponse(Race race, IEnumerable<Currency> currencies) =>

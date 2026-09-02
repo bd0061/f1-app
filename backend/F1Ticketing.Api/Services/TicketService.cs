@@ -286,6 +286,7 @@ public sealed class TicketService(
         var pass = new PaddockPass
         {
             TicketId = ticket.Id,
+            Ticket = ticket,
             PitLane = request.PitLane,
             Food = request.Food,
             Drinks = request.Drinks,
